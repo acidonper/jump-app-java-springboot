@@ -12,8 +12,8 @@ class UserTest {
 
     @Test
     public void getUserDto() throws Exception {
-        User user = new User("pepe", "gimenez");
+        User user = new User("033212F","pepe", "gimenez");
         assertNotNull(user);
-        assertThat(user.toString()).isEqualTo("User[firstName='pepe', lastName='gimenez']");
+        assertThat(user.toString()).isEqualTo("User[dni='033212F', firstName='pepe', lastName='gimenez']");
     }
 }

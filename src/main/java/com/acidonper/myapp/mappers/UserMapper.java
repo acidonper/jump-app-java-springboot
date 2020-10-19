@@ -12,12 +12,14 @@ public interface UserMapper {
     UserMapper INSTANCE = Mappers.getMapper( UserMapper.class);
 
     @Mappings({
+            @Mapping(target = "id", source = "entity.dni"),
             @Mapping(target = "firstName", source = "entity.firstName"),
             @Mapping(target = "lastName", source = "entity.lastName")
     })
     UserDto userToUserDTO(User entity);
 
     @Mappings({
+            @Mapping(target="dni", source="dto.id"),
             @Mapping(target="firstName", source="dto.firstName"),
             @Mapping(target="lastName", source="dto.lastName")
     })

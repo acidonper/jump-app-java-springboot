@@ -39,7 +39,21 @@ public class UsersController {
     @PostMapping("/users")
     String run(@Valid @RequestBody UserDto newUser) {
         User user = UserMapper.INSTANCE.userDTOtoUser(newUser);
-        repository.save(user);
-        return "User " + user.firstName + " created!";
+
+        // Obtain User with DNI in the database
+        List<User> usersCreated = repository.findByDni(user.dni);
+
+        // Save creation status
+        String reqStatus = null;
+
+        if(usersCreated.isEmpty()) {
+            repository.save(user);
+            reqStatus = "created";
+        }
+        else {
+            reqStatus = "exists";
+        }
+        return "User " + user.firstName + " " + reqStatus;
+
     }
 }
