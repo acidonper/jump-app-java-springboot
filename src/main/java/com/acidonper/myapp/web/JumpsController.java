@@ -5,9 +5,8 @@ import com.acidonper.myapp.entities.Jump;
 import com.acidonper.myapp.entities.Response;
 import com.acidonper.myapp.mappers.JumpMapper;
 import com.google.gson.Gson;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -15,7 +14,7 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 public class JumpsController {
@@ -45,14 +44,7 @@ public class JumpsController {
     }
 
     @PostMapping("/jump")
-    ResponseEntity<String> jumpPost(@Valid
-                      @RequestBody JumpDto newJump,
-                      @RequestHeader Map<String, String> headers) throws IOException {
-        System.out.println("Received POST /jump");
-        // Print Headers
-        headers.forEach((key, value) -> {
-            System.out.println(String.format("Header '%s' = %s", key, value));
-        });
+    Response jumpPost(@Valid @RequestHeader MultiValueMap<String, String> headers, @RequestBody JumpDto newJump) throws IOException {
 
         Jump jump = JumpMapper.INSTANCE.jumpDTOtoJump(newJump);
         Response response = new Response("/jump - Farewell from Spring Boot! Error by default",400 );
@@ -79,6 +71,9 @@ public class JumpsController {
             con.setRequestProperty("X-B3-Flags", headers.get("x-b3-Flags"));
             con.setRequestProperty("X-Ot-Span-Context", headers.get("x-ot-span-context"));
             con.setRequestMethod("GET");
+
+            // handler Headers
+            PropageteXb3(con, headers);
 
             // Handle Response
             try (BufferedReader br = new BufferedReader(
@@ -109,6 +104,9 @@ public class JumpsController {
             String[] jumpsPost = Arrays.copyOfRange(jump.jumps, 1, jump.jumps.length);
             Jump jumpPost = jump;
             jumpPost.jumps = jumpsPost;
+
+            // handler Headers
+            PropageteXb3(con, headers);
 
             // Perform POST
             System.out.println("Sending POST Response /jump to " + url);
@@ -163,6 +161,18 @@ public class JumpsController {
 
     HttpURLConnection create(URL url) throws IOException {
         return (HttpURLConnection) url.openConnection();
+    }
+
+    /**
+     * PropageteXb3
+     */
+    void PropageteXb3(HttpURLConnection con, MultiValueMap<String, String> headers) {
+        headers.forEach((key, value) -> {
+            if (key.contains("X-B3-") || key.contains("x-b3-") ){
+                System.out.println(key + ": " + value);    
+                con.setRequestProperty(key, value.stream().collect(Collectors.joining("|")));
+            };
+        });
     }
 
 }
