@@ -5,6 +5,8 @@ import com.acidonper.myapp.entities.Jump;
 import com.acidonper.myapp.entities.Response;
 import com.acidonper.myapp.mappers.JumpMapper;
 import com.google.gson.Gson;
+
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -12,6 +14,7 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 @RestController
 public class JumpsController {
@@ -25,7 +28,7 @@ public class JumpsController {
     }
 
     @PostMapping("/jump")
-    Response jumpPost(@Valid @RequestBody JumpDto newJump) throws IOException {
+    Response jumpPost(@Valid @RequestBody @RequestHeader MultiValueMap<String, String> headers, JumpDto newJump) throws IOException {
 
         Jump jump = JumpMapper.INSTANCE.jumpDTOtoJump(newJump);
         Response response = new Response("/jump - Farewell from Spring Boot! Error by default",400 );
@@ -44,6 +47,9 @@ public class JumpsController {
 
             // Perform GET
             con.setRequestMethod("GET");
+
+            // handler Headers
+            PropageteXb3(con, headers);
 
             // Handle Response
             try (BufferedReader br = new BufferedReader(
@@ -74,6 +80,9 @@ public class JumpsController {
             String[] jumpsPost = Arrays.copyOfRange(jump.jumps, 1, jump.jumps.length);
             Jump jumpPost = jump;
             jumpPost.jumps = jumpsPost;
+
+            // handler Headers
+            PropageteXb3(con, headers);
 
             // Perform POST
             con.setRequestMethod("POST");
@@ -111,6 +120,19 @@ public class JumpsController {
 
     HttpURLConnection create(URL url) throws IOException {
         return (HttpURLConnection) url.openConnection();
+    }
+
+    /**
+     * PropageteXb3
+     */
+    void PropageteXb3(HttpURLConnection con, MultiValueMap<String, String> headers) {
+        headers.forEach((key, value) -> {
+            System.out.println(key);
+            System.out.println(value);
+            if (key.contains("X-B3-")){
+              con.setRequestProperty(key, value.stream().collect(Collectors.joining("|")));
+            };
+        });
     }
 
 }
