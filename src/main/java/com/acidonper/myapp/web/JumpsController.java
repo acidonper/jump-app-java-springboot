@@ -127,10 +127,9 @@ public class JumpsController {
      */
     void PropageteXb3(HttpURLConnection con, MultiValueMap<String, String> headers) {
         headers.forEach((key, value) -> {
-            System.out.println(key);
-            System.out.println(value);
-            if (key.contains("X-B3-")){
-              con.setRequestProperty(key, value.stream().collect(Collectors.joining("|")));
+            if (key.contains("X-B3-") || key.contains("x-b3-") ){
+                System.out.println(key + ": " + value);    
+                con.setRequestProperty(key, value.stream().collect(Collectors.joining("|")));
             };
         });
     }
