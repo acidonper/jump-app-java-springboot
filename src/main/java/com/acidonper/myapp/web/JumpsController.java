@@ -28,7 +28,7 @@ public class JumpsController {
     }
 
     @PostMapping("/jump")
-    Response jumpPost(@Valid @RequestBody @RequestHeader MultiValueMap<String, String> headers, JumpDto newJump) throws IOException {
+    Response jumpPost(@Valid @RequestHeader MultiValueMap<String, String> headers, @RequestBody JumpDto newJump) throws IOException {
 
         Jump jump = JumpMapper.INSTANCE.jumpDTOtoJump(newJump);
         Response response = new Response("/jump - Farewell from Spring Boot! Error by default",400 );
